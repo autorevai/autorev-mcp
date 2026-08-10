@@ -1,0 +1,55 @@
+{
+  "name": "@autorev/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for AutoRev AI. Run your field service business from Claude: answer calls, book and dispatch jobs, build estimates, chase invoices. Built for HVAC, plumbing, electrical, roofing and pest control.",
+  "homepage": "https://autorev.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/autorevai/autorev-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/autorevai/autorev-mcp/issues"
+  },
+  "license": "MIT",
+  "author": "AutoRev AI (https://autorev.ai)",
+  "type": "module",
+  "bin": {
+    "autorev-mcp": "src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "claude",
+    "anthropic",
+    "ai-agent",
+    "field-service",
+    "fsm",
+    "hvac",
+    "plumbing",
+    "electrical",
+    "roofing",
+    "pest-control",
+    "servicetitan",
+    "housecall-pro",
+    "jobber",
+    "ai-receptionist",
+    "voice-ai",
+    "dispatch",
+    "scheduling",
+    "invoicing",
+    "autorev"
+  ],
+  "scripts": {
+    "start": "node src/index.mjs"
+  }
+}
