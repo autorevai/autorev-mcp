@@ -82,7 +82,7 @@ tools.
 | Field service integrations | ServiceTitan, Housecall Pro, Jobber, FieldEdge, Service Fusion, GoHighLevel |
 | Pest control | Chemical application logging and history |
 
-Full catalog: [docs/tools.md](docs/tools.md).
+Full catalog: [Tool manifest](https://docs.autorev.ai/ai-agents/tool-manifest).
 
 ## Security
 
