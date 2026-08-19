@@ -61,7 +61,12 @@ if (help) {
 // JSON-RPC stream. Diagnostics go to stderr only.
 process.stderr.write(`[autorev-mcp] connecting to ${url}\n`)
 
-const bridge = spawn('npx', ['-y', 'mcp-remote', url, ...passthrough], {
+// mcp-remote is pinned to an exact version, not floated to latest. This bridge
+// runs on the user's machine, so an unpinned dependency would pull whatever
+// mcp-remote is newest at run time. Pinning means a future compromised release
+// cannot reach our users until we review it and bump this line deliberately.
+const MCP_REMOTE_VERSION = '0.1.38'
+const bridge = spawn('npx', ['-y', `mcp-remote@${MCP_REMOTE_VERSION}`, url, ...passthrough], {
   stdio: 'inherit',
   env: process.env,
 })
