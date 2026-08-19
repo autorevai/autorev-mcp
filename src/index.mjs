@@ -12,8 +12,8 @@
  * password. It only pins the AutoRev endpoint so the command is a one-liner.
  *
  * Usage:
- *   npx @autorev/mcp-server
- *   npx @autorev/mcp-server --url https://app.autorev.ai/api/mcp   (override)
+ *   npx @autorevai/mcp-server
+ *   npx @autorevai/mcp-server --url https://app.autorev.ai/api/mcp   (override)
  */
 import { spawn } from 'node:child_process'
 
@@ -39,7 +39,7 @@ function parseArgs(argv) {
 const HELP = `
 AutoRev MCP server (stdio bridge)
 
-  npx @autorev/mcp-server [--url <endpoint>] [mcp-remote flags...]
+  npx @autorevai/mcp-server [--url <endpoint>] [mcp-remote flags...]
 
 Connects an MCP client to AutoRev at ${DEFAULT_URL}.
 A browser window opens on first run so you can sign in to your AutoRev account.

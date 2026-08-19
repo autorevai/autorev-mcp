@@ -32,7 +32,7 @@ enabled.
 ### Cursor, Windsurf, and other stdio-only clients
 
 ```bash
-npx @autorev/mcp-server
+npx @autorevai/mcp-server
 ```
 
 Or add it to your client config:
@@ -42,7 +42,7 @@ Or add it to your client config:
   "mcpServers": {
     "autorev": {
       "command": "npx",
-      "args": ["-y", "@autorev/mcp-server"]
+      "args": ["-y", "@autorevai/mcp-server"]
     }
   }
 }
