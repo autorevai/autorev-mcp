@@ -10,10 +10,23 @@
 # it, and the `io.github.autorevai/*` namespace is authenticated by the fact that this workflow
 # runs in the autorevai org. No browser, no device code, no stored credential.
 #
-# Deliberately NOT publishing to npm here. @autorevai/mcp-server 1.0.0 is already on the registry
-# and this machine has no npm auth, so an `npm publish` step would fail the run on every tag and
-# take the registry publish down with it. Publishing npm from CI is worth doing, but it needs an
-# NPM_TOKEN secret first, and the commented block below is what to uncomment once that exists.
+# npm publishing here uses TRUSTED PUBLISHING, so there is no token to create, paste or rotate.
+# npm mints an OIDC token per run from the same `id-token: write` permission the registry step
+# already needs. Classic npm tokens were invalidated on 2025-12-09, so a token would have to be a
+# granular one anyway, and a credential nobody has to store is better than one somebody does.
+#
+# ONE-TIME SETUP, and it is a settings page rather than a secret:
+#   npmjs.com -> @autorevai/mcp-server -> Settings -> Trusted Publisher -> GitHub Actions
+#     Organization or user:  autorevai      (case-sensitive)
+#     Repository:            autorev-mcp
+#     Workflow filename:     publish-mcp.yml   <- must match this file's name exactly
+#   Allowed action must include `npm publish`.
+# The package already has 1.0.0 on npm, which satisfies npm's rule that a first version be
+# published before a Trusted Publisher can be configured.
+#
+# Until that is configured the npm step is skipped, not failed, so the registry publish still
+# runs and still reports honestly. Set the repo variable NPM_TRUSTED_PUBLISHING to `true` to turn
+# it on.
 #
 # Trigger: a v* tag. To publish a new version, bump `version` in BOTH package.json and
 # server.json, tag it, push the tag.
@@ -62,13 +75,26 @@ jobs:
             exit 1
           fi
 
-      # - name: Publish to npm
-      #   Uncomment once an NPM_TOKEN secret exists on this repo. Checked 2026-09-11: no npm
-      #   credential is available anywhere in the toolchain, which has now blocked two separate
-      #   backlink plays (this one and the n8n community node).
-      #   run: npm publish --access public
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Trusted publishing needs npm >= 11.5.1 and Node >= 22.14.0, and registry-url must be set
+      # for the OIDC exchange to target the public registry.
+      - name: Set up Node
+        if: vars.NPM_TRUSTED_PUBLISHING == 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish to npm via trusted publishing
+        if: vars.NPM_TRUSTED_PUBLISHING == 'true'
+        run: |
+          npm install -g npm@latest
+          npm --version
+          npm publish --access public
+
+      - name: Say why npm was skipped
+        if: vars.NPM_TRUSTED_PUBLISHING != 'true'
+        run: |
+          echo "::notice::npm publish skipped. The registry reads mcpName from the PUBLISHED tarball, so if this version is not on npm yet the registry step will fail with 'missing required mcpName field'. Configure Trusted Publisher on npmjs.com and set the repo variable NPM_TRUSTED_PUBLISHING=true, or publish by hand once. See PUBLISHING.md."
 
       - name: Install mcp-publisher
         run: |
