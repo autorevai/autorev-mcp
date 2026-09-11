@@ -1,6 +1,7 @@
 {
   "name": "@autorevai/mcp-server",
-  "version": "1.0.0",
+  "mcpName": "io.github.autorevai/autorev-mcp",
+  "version": "1.0.1",
   "description": "MCP server for AutoRev AI. Run your field service business from Claude: answer calls, book and dispatch jobs, build estimates, chase invoices. Built for HVAC, plumbing, electrical, roofing and pest control.",
   "homepage": "https://autorev.ai",
   "repository": {
