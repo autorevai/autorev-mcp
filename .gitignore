@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 *.log
+
+# Local agent scratch, not part of the package
+.claude/
