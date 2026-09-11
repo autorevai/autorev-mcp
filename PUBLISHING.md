@@ -18,34 +18,51 @@ validation and were rejected on content, never on identity:
 | 1 | `422 expected length <= 100` on `body.description` (ours was 202) | Yes, rewritten to 95 chars |
 | 2 | `400 NPM package is missing required 'mcpName' field` | Field added, see below |
 
-## The one remaining step
+## The one remaining step, and it is a settings page not a credential
 
-The registry reads `mcpName` from the **published npm tarball**, not from this repo. Adding it
-here is necessary and not sufficient: the package on the registry has to carry it.
+The registry reads `mcpName` from the **published npm tarball**, not from this repo. So `1.0.1`
+has to reach npm before the registry will accept it. `1.0.0` is up there and does not carry the
+field.
 
-`@autorevai/mcp-server@1.0.0` on npm does not have the field. `1.0.1` in this repo does.
+**Do this once, on npmjs.com. No token to create, paste, store or rotate.**
 
-So somebody with npm credentials runs:
+> @autorevai/mcp-server -> Settings -> Trusted Publisher -> GitHub Actions
+> - Organization or user: `autorevai` (case-sensitive)
+> - Repository: `autorev-mcp`
+> - Workflow filename: `publish-mcp.yml` (must match exactly)
+> - Allowed action must include `npm publish`
+
+Then set the repo variable `NPM_TRUSTED_PUBLISHING=true`:
 
 ```bash
-cd ~/code/autorev-mcp
-npm login          # only if this machine has never published
-npm publish --access public
+gh variable set NPM_TRUSTED_PUBLISHING --body true --repo autorevai/autorev-mcp
 ```
 
-Then trigger the workflow from the Actions tab, or push a `v1.0.1` tag. It will publish to the
-registry and confirm the listing is searchable.
+Then dispatch the workflow, or push a `v1.0.1` tag. It publishes to npm, publishes to the
+registry, and confirms the listing is searchable.
 
-**No npm credential exists anywhere in the current toolchain.** Checked 2026-09-11: `npm whoami`
+npm mints an OIDC token per run from the same `id-token: write` permission the registry step
+already uses. It is scoped to one run and expires in minutes. Classic npm tokens were invalidated
+on 2025-12-09, so the alternative would be a granular token somebody has to store anyway.
+
+`@autorevai/mcp-server@1.0.0` already being on npm satisfies npm's rule that a first version must
+exist before a Trusted Publisher can be configured.
+
+**If you would rather just do it by hand once:** `npm login && npm publish --access public` from
+this directory, then dispatch the workflow. The npm step stays skipped and everything else runs.
+
+Until `NPM_TRUSTED_PUBLISHING` is set, the npm step is **skipped rather than failed**, so the
+registry publish still runs and still reports honestly.
+
+## Why the credential question keeps coming up
+
+No npm credential exists anywhere in the current toolchain. Checked 2026-09-11: `npm whoami`
 returns `need auth`, and there is no `~/.npmrc`. `1.0.0` was published from somewhere else.
 
-## Worth doing once instead of every time
-
-Add an `NPM_TOKEN` secret to this repo and uncomment the npm publish block in the workflow. Then a
-tag does the whole thing: npm, then registry, then the confirmation check.
-
-The same missing credential has now blocked two separate backlink plays, this one and the n8n
-community node, which is the largest single row in the marketing repo's `backlink-master.csv`.
+That same gap has now blocked two separate backlink plays: this listing, and the n8n community
+node, which is the largest single row in the marketing repo's `backlink-master.csv` (one node
+reportedly earned Dialzara ~800 backlinks, because n8n generates a page per node pairing).
+Trusted publishing fixes it for this repo permanently.
 
 ## Why any of this matters
 
