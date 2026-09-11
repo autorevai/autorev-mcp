@@ -62,19 +62,6 @@ jobs:
             exit 1
           fi
 
-      # The npm package must already be on the public registry, because the registry validates
-      # the package reference in server.json. Catch it here with a clear message rather than
-      # letting `mcp-publisher publish` fail with something less obvious.
-      - name: Check the npm package is published
-        run: |
-          NAME="$(jq -r '.packages[0].identifier' server.json)"
-          VERSION="$(jq -r '.packages[0].version' server.json)"
-          echo "looking for $NAME@$VERSION on npm"
-          if ! curl -sf "https://registry.npmjs.org/$(echo "$NAME" | sed 's|/|%2F|')" | jq -e --arg v "$VERSION" '.versions[$v]' >/dev/null; then
-            echo "::error::$NAME@$VERSION is not on npm. The MCP Registry validates this reference, so publish the package first."
-            exit 1
-          fi
-
       # Trusted publishing needs npm >= 11.5.1 and Node >= 22.14.0, and registry-url must be set
       # for the OIDC exchange to target the public registry.
       - name: Set up Node
@@ -95,6 +82,21 @@ jobs:
         if: vars.NPM_TRUSTED_PUBLISHING != 'true'
         run: |
           echo "::notice::npm publish skipped. The registry reads mcpName from the PUBLISHED tarball, so if this version is not on npm yet the registry step will fail with 'missing required mcpName field'. Configure Trusted Publisher on npmjs.com and set the repo variable NPM_TRUSTED_PUBLISHING=true, or publish by hand once. See PUBLISHING.md."
+
+      # Runs AFTER the npm publish on purpose. The registry validates the package reference in
+      # server.json against the live npm registry, so this is the gate on "did the publish above
+      # actually land", not a precondition. The first version of this workflow had it before the
+      # publish, where it failed the run on the exact problem the next step existed to fix, and
+      # took every later step's diagnostics down with it.
+      - name: Check the npm package is published
+        run: |
+          NAME="$(jq -r '.packages[0].identifier' server.json)"
+          VERSION="$(jq -r '.packages[0].version' server.json)"
+          echo "looking for $NAME@$VERSION on npm"
+          if ! curl -sf "https://registry.npmjs.org/$(echo "$NAME" | sed 's|/|%2F|')" | jq -e --arg v "$VERSION" '.versions[$v]' >/dev/null; then
+            echo "::error::$NAME@$VERSION is not on npm, so the registry will reject this publish. If the npm step above was skipped, that is why: configure Trusted Publisher and set NPM_TRUSTED_PUBLISHING=true, or run 'npm publish --access public' by hand once. See PUBLISHING.md."
+            exit 1
+          fi
 
       - name: Install mcp-publisher
         run: |
